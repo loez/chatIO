@@ -1,0 +1,17 @@
+{
+  "name": "chatio",
+  "version": "1.0.0",
+  "description": "Simples chat de salas em Scoket.IO",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Luiz Mello",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^4.6.1",
+    "express": "^4.17.2",
+    "jquery": "^3.6.0",
+    "socket.io": "^4.4.1"
+  }
+}
