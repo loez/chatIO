@@ -4,7 +4,7 @@ const http = require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server,{
     cors: {
-        origin: ["https://*.praxioluna.com.br,localhost","http://localhost"],
+        origin: ["http://localhost"],
         methods: ["GET", "POST"],
     }
 });
@@ -23,13 +23,12 @@ io.on('connection', (socket) => {
     socket.on("login", ({nome, sala}) => {
         const { usuario } = adicionaUsuario(socket.id, nome, sala)
         socket.join(usuario.sala)
-         socket.broadcast.emit('mensagem',usuario.nome + ' entrou');
+        socket.broadcast.emit('mensagem',usuario.nome + ' entrou');
     });
 
     socket.on("enviaMensagem", message => {
         const usuario = getUsuario(socket.id)
         socket.broadcast.to(usuario.sala).emit('mensagem',message);
-        console.log(message)
     });
 
     socket.on("getSalas",() =>{

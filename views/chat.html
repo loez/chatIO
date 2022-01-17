@@ -18,96 +18,76 @@
 <body>
 <div class="container">
     <div class="row">
-    <div class="col-4 pr-1">
-        <div class="card border-right-0" style="max-width: 400px;">
-            <div class="card-header bg-transparent">
-                <div class="navbar navbar-expand p-0">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">Salas</a>
-                        </li>
+        <div class="col-4 pr-1">
+            <div class="card border-right-0" style="max-width: 400px;">
+                <div class="card-header bg-transparent">
+                    <div class="navbar navbar-expand p-0">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">Salas</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-0" style="height: 768px; overflow: auto">
+                    <ul class="list-group list-group-flush align-items-center" id="listaSalas">
+                        <a class="list-group-item list-group-item-action salasChat" href="#" data-sala="Geral" id="salaTodas">Geral</a>
                     </ul>
                 </div>
-            </div>
-            <div class="card-body p-0" style="height: 768px; overflow: auto">
-                <ul class="list-group list-group-flush align-items-center" id="listaSalas">
-
-                </ul>
-            </div>
-            <div class="card-footer p-1">
-                <div class="row">
-                    <div class="col">
-                        <input type="text" class="form-control" id="inputUsuario" name="inputUsuario" placeholder="Usuário">
+                <div class="card-footer p-1">
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" class="form-control" id="inputUsuario" name="inputUsuario" placeholder="Usuário">
+                        </div>
+                        <div class="col-auto align-self-center">
+                            <button type="button" id="btnEntrar" class="btn btn-primary">Entrar</button>
+                        </div>
                     </div>
-                    <div class="col-auto align-self-center">
-                        <button type="button" id="btnEntrar" class="btn btn-primary">Entrar</button>
+                </div>
+            </div>
+        </div>
+        <div class="col pl-0">
+            <div class="card" style="max-width: 800px;">
+                <div class="card-header bg-transparent">
+                    <div class="navbar navbar-expand p-0">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link" id="salaConectada">Não Conectado</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body border-left-0 p-4" style="height: 768px; overflow: auto" id="todasMensagens">
+                </div>
+                <div class="card-footer p-1">
+                    <div class="row text-center">
+                        <div class="col pr-0">
+                            <input id="inputMensagem" type="text" class="form-control" placeholder="Mensagem">
+                        </div>
+                        <div class="col-auto align-self-center">
+                            <button type="button" class="btn btn-primary" id="btnMensagem">Enviar</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col pl-0">
-        <div class="card" style="max-width: 800px;">
-            <div class="card-header bg-transparent">
-                <div class="navbar navbar-expand p-0">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" id="salaConectada">Não Conectado</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card-body border-left-0 p-4" style="height: 768px; overflow: auto">
-                <div class="d-flex align-items-baseline mb-4">
-                    <div class="card d-inline-block p-2 px-3 m-1">
-                        <div class="row">
-                            <label>Luiz</label>
-                        </div>
-                        <div class="row">
-                            <label>Salve salve família</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex align-items-baseline text-end justify-content-end mb-4">
-                    <div>
-                        <div class="card d-inline-block p-2 px-3 m-1" >
-                            teste
-                            Luiz
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer p-1">
-                <div class="row text-center">
-                    <div class="col pr-0">
-                        <input id="inputMensagem" type="text" class="form-control" placeholder="Mensagem">
-                    </div>
-                    <div class="col-auto align-self-center">
-                        <button type="button" class="btn btn-primary" id="btnMensagem">Enviar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 </div>
 <script>
     jQuery(function () {
         const socket = io();
-
+        let i = 0;
         $('#btnEntrar').on('click',function (){
             if($('#inputUsuario').val() === ""){
                 return false;
             }
-
             socket.emit('getSalas','');
         });
 
-
-
         socket.on('mensagem',(mensagem) => {
-            if(Array.isArray(mensagem)){
-
+            if(typeof (mensagem) === 'object'){
+                let mensagemAppend = retornaMensagem(mensagem['Mensagem'],mensagem['Usuario']);
+                $('#todasMensagens').get(0).insertAdjacentHTML('beforeend',mensagemAppend);
             }else{
                 console.log(mensagem);
             }
@@ -125,10 +105,42 @@
         });
 
         $('#btnMensagem').on('click',function (){
-            socket.emit('enviaMensagem',$('#inputMensagem').val());
+            let mensagemAppend = retornaMensagem($('#inputMensagem').val(),'',true);
+            $('#todasMensagens').get(0).insertAdjacentHTML('beforeend',mensagemAppend);
+
+            let mensagemEnvio = {
+                'Mensagem' : $('#inputMensagem').val(),
+                'Usuario' : $('#inputUsuario').val()
+            };
+
+            socket.emit('enviaMensagem',mensagemEnvio);
         })
 
     })
+    function retornaMensagem(mensagem,usuario,self = false){
+        let html= '';
+        if(!self){
+            html += '    <div class="d-flex align-items-baseline mb-4" name="mensagemRecebida"> '+
+                '       <div class="card d-inline-block p-2 px-3 m-1">'+
+                '           <div class="row"> '+
+                '               <label>'+ usuario + '</label>'+
+                '           </div>'+
+                '           <div class="row">'+
+                '               <label>'+ mensagem + '</label>'+
+                '           </div>'+
+                '       </div>'+
+                '     </div>';
+            return html;
+        }else{
+            html += '<div class="d-flex align-items-baseline text-end justify-content-end mb-4" name="mensagemEnviada">'+
+                '   <div>'+
+                '       <label class="card d-inline-block p-2 px-3 m-1">'+mensagem+'</label>'+
+                '   </div>'+
+                '</div>';
+
+            return html;
+        }
+    }
 </script>
 </body>
 </html>
