@@ -1,15 +1,17 @@
-const usuarios = [{'id' : '', 'nome': '', 'sala': 'teste1'},{'id' : '', 'nome': '', 'sala': 'teste2'},{'id' : '', 'nome': '', 'sala': 'teste3'}]
+const usuarios = [{'id' : '', 'nome': '', 'sala': 'teste1', 'salaOld': undefined},{'id' : '', 'nome': '', 'sala': 'teste2', 'salaOld': undefined},{'id' : '', 'nome': '', 'sala': 'teste3', 'salaOld': undefined}]
 
 const adicionaUsuario = (id, nome, sala) => {
     const existeUsuario = usuarios.find(user => user.id === id)
+    let usuario;
 
     if(existeUsuario){
+        existeUsuario.salaOld = existeUsuario.sala;
         existeUsuario.sala = sala;
-        let usuario = existeUsuario;
+        usuario = existeUsuario;
         return { usuario }
     }
 
-    const usuario  = { id, nome, sala }
+    usuario  = {id, nome, sala}
     usuarios.push(usuario)
     return { usuario }
 }

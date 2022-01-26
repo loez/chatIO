@@ -21,15 +21,23 @@ server.listen(80, function () {
 });
 
 io.on('connection', (socket) => {
-    socket.on("login", ({nome, sala}) => {
-        const { usuario } = adicionaUsuario(socket.id, nome, sala)
-        socket.join(usuario.sala);
-        let mensagem = {
-            'Mensagem': 'Entrou',
+    function CriaMensagem(usuario, msg) {
+        return {
+            'Mensagem': msg,
             'Hora': moment().format('HH:mm:ss'),
             'Usuario': usuario.nome
         };
-        socket.broadcast.to(usuario.sala).emit('mensagem', mensagem);
+    }
+
+    socket.on("login", ({nome, sala}) => {
+        const { usuario } = adicionaUsuario(socket.id, nome, sala)
+        socket.join(usuario.sala);
+
+        if (usuario.salaOld !== undefined) {
+            socket.broadcast.to(usuario.salaOld).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-out-alt fa-3x"></i>'));
+        }
+
+        socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-in-alt fa-3x"></i>'));
     });
 
     socket.on("enviaMensagem", (message, callback) => {
@@ -53,6 +61,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on("disconnect", () => {
+        const usuario = getUsuario(socket.id);
+
+        if (usuario !== undefined) {
+            socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-out-alt fa-3x"></i>'));
+        }
+
         deletaUsuario(socket.id);
     })
 
