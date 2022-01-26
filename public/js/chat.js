@@ -51,7 +51,7 @@ function retornaMensagem(mensagem, self = false) {
         html =
             '<li class="chat-left">\n' +
             '    <div class="chat-avatar">\n' +
-            '        <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">\n' +
+            '        <i class="fas fa-user-circle" aria-hidden="true"></i>\n' +
             '        <div class="chat-name">'+mensagem.Usuario+'</div>\n' +
             '    </div>\n' +
             '    <div class="chat-text">'+mensagem.Mensagem+'</div>\n' +
@@ -63,7 +63,7 @@ function retornaMensagem(mensagem, self = false) {
             '    <div class="chat-hour">'+mensagem.Hora+' <span class="fa fa-check-circle"></span></div>\n' +
             '    <div class="chat-text">'+mensagem.Mensagem+'</div>\n' +
             '    <div class="chat-avatar">\n' +
-            '        <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">\n' +
+            '        <i class="far fa-user-circle" aria-hidden="true"></i>\n' +
             '        <div class="chat-name">'+mensagem.Usuario+'</div>\n' +
             '    </div>\n' +
             '</li>';

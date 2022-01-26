@@ -214,9 +214,8 @@
     margin-bottom: 40px;
 }
 
-.chat-container li img {
-    width: 48px;
-    height: 48px;
+.chat-avatar i {
+    font-size: 43px;
     -webkit-border-radius: 30px;
     -moz-border-radius: 30px;
     border-radius: 30px;
@@ -246,7 +245,7 @@
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
-    background: #ffffff;
+    background: #e7e8ee;
     font-weight: 300;
     line-height: 150%;
     position: relative;
@@ -260,7 +259,7 @@
     top: 10px;
     left: -20px;
     border: 10px solid;
-    border-color: transparent #ffffff transparent transparent;
+    border-color: transparent #e7e8ee transparent transparent;
 }
 
 .chat-container li.chat-right > .chat-text {
@@ -269,13 +268,12 @@
 
 .chat-container li.chat-right > .chat-text:before {
     right: -20px;
-    border-color: transparent transparent transparent #ffffff;
+    border-color: transparent transparent transparent #e7e8ee;
     left: inherit;
 }
 
 .chat-container li .chat-hour {
     padding: 0;
-    margin-bottom: 10px;
     font-size: .75rem;
     display: flex;
     flex-direction: row;
@@ -351,7 +349,6 @@ ul {
 }
 .card {
     border: 0;
-    background: #f4f5fb;
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
     border-radius: 2px;
