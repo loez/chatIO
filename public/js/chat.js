@@ -1,9 +1,11 @@
 jQuery(function () {
     const socket = io();
     $('#btnEntrar').on('click', function () {
-        if ($('#inputUsuario').val() === "") {
+        let inputUsuario = $('#inputUsuario');
+        if (inputUsuario.val() === "") {
             return false;
         }
+        inputUsuario.prop('readonly', true);
         socket.emit('getSalas', '');
     });
 
@@ -39,11 +41,23 @@ jQuery(function () {
             };
 
         socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
+            inputMensagem.val('');
             $('#todasMensagens').get(0).insertAdjacentHTML('beforeend', retornaMensagem(callback, true));
         });
-    })
+    });
 
-})
+    $('#inputUsuario').on('keyup', function(e) {
+        if (e.key==="Enter") {
+            $('#btnEntrar').trigger('click');
+        }
+    });
+
+    $('#inputMensagem').on('keyup', function(e) {
+        if (e.key==="Enter") {
+            $('#btnMensagem').trigger('click');
+        }
+    });
+});
 
 function retornaMensagem(mensagem, self = false) {
     let html;
