@@ -38,9 +38,11 @@ io.on('connection', (socket) => {
 
         if (usuario.salaOld !== undefined) {
             socket.broadcast.to(usuario.salaOld).emit('mensagem', CriaMensagem(usuario, msgSaiu));
+            socket.broadcast.to(usuario.salaOld).emit('retornoUsers', getUsuariosSala(usuario.salaOld));
         }
 
         socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, msgEntrou));
+        socket.broadcast.to(usuario.sala).emit('retornoUsers', getUsuariosSala(usuario.sala));
     });
 
     socket.on("enviaMensagem", (message, callback) => {
@@ -59,8 +61,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on("getUsers", (sala) =>{
-        const users = getUsuariosSala(sala);
-        socket.emit('retornoUsers', users);
+        socket.emit('retornoUsers', getUsuariosSala(sala));
     });
 
     socket.on("disconnect", () => {
@@ -68,6 +69,7 @@ io.on('connection', (socket) => {
 
         if (usuario !== undefined) {
             socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, msgSaiu));
+            socket.broadcast.to(usuario.sala).emit('retornoUsers', getUsuariosSala(usuario.sala));
         }
 
         deletaUsuario(socket.id);

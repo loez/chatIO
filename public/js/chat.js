@@ -15,14 +15,25 @@ jQuery(function () {
     });
 
     socket.on('retornoSalas', (salas) => {
-        $("a[id^='salas']").remove();
-        salas.forEach(function (valor, index) {
-            $('<a></a>').text(valor).attr('id', 'salas' + index).attr('data-sala', valor).addClass('list-group-item').addClass('salasChat').addClass('list-group-item-action').attr('href', '#').appendTo('#listaSalas');
-        })
+        let listaSala = $('#listaSalas');
+        listaSala.html('');
+        salas.forEach(function (valor) {
+            let sala =
+                '<a href="#sala-'+valor+'" class="list-group-item salasChat" data-sala="'+valor+'" data-toggle="collapse">\n' +
+                '    <i class="fas fa-chevron-right"></i> '+valor+'\n' +
+                '</a>\n' +
+                '<div class="list-group collapse" id="sala-'+valor+'"></div>';
+            listaSala.append(sala);
+        });
     });
 
     socket.on('retornoUsers', (users) => {
-        console.log(users);
+        if (users.length > 0) {
+            let sala = users[0].sala;
+            $('#sala-' + sala).html(users.map(x => {
+                return '<div class="list-group-item list-user"><small class="item-user">' + x.nome + '</small></div>';
+            }));
+        }
     });
 
     $(document).on('click', '.salasChat', function () {
@@ -56,6 +67,12 @@ jQuery(function () {
         if (e.key==="Enter") {
             $('#btnMensagem').trigger('click');
         }
+    });
+
+    $(document).on('click', '.list-group-item', function() {
+        $('.fas', this)
+            .toggleClass('fa-chevron-right')
+            .toggleClass('fa-chevron-down');
     });
 });
 
