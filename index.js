@@ -21,6 +21,9 @@ server.listen(80, function () {
 });
 
 io.on('connection', (socket) => {
+    const msgEntrou = '<i class="fas fa-sign-in-alt fa-2x"></i><br><small>Entrou</small>';
+    const msgSaiu = '<i class="fas fa-sign-out-alt fa-2x"></i><br><small>Saiu</small>';
+
     function CriaMensagem(usuario, msg) {
         return {
             'Mensagem': msg,
@@ -34,10 +37,10 @@ io.on('connection', (socket) => {
         socket.join(usuario.sala);
 
         if (usuario.salaOld !== undefined) {
-            socket.broadcast.to(usuario.salaOld).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-out-alt fa-3x"></i>'));
+            socket.broadcast.to(usuario.salaOld).emit('mensagem', CriaMensagem(usuario, msgSaiu));
         }
 
-        socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-in-alt fa-3x"></i>'));
+        socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, msgEntrou));
     });
 
     socket.on("enviaMensagem", (message, callback) => {
@@ -64,7 +67,7 @@ io.on('connection', (socket) => {
         const usuario = getUsuario(socket.id);
 
         if (usuario !== undefined) {
-            socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, '<i class="fas fa-sign-out-alt fa-3x"></i>'));
+            socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, msgSaiu));
         }
 
         deletaUsuario(socket.id);
