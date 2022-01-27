@@ -249,6 +249,7 @@
     font-weight: 300;
     line-height: 150%;
     position: relative;
+    max-width: 50%;
 }
 
 .chat-container li .chat-text:before {
@@ -354,4 +355,12 @@ ul {
     border-radius: 2px;
     margin-bottom: 2rem;
     box-shadow: none;
+}
+
+.chat-left div.chat-text {
+    background-color: #C1CAD6;
+}
+
+.chat-left div.chat-text:before {
+    border-color: transparent #C1CAD6 transparent transparent;
 }
