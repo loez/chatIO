@@ -17,21 +17,32 @@ jQuery(function () {
     socket.on('retornoSalas', (salas) => {
         let listaSala = $('#listaSalas');
         listaSala.html('');
-        salas.forEach(function (valor) {
-            let sala =
-                '<a href="#sala-'+valor+'" class="list-group-item salasChat" data-sala="'+valor+'" data-toggle="collapse">\n' +
-                '    <i class="fas fa-chevron-right"></i> '+valor+'\n' +
-                '</a>\n' +
-                '<div class="list-group collapse" id="sala-'+valor+'"></div>';
-            listaSala.append(sala);
+        salas.forEach(function (sala) {
+            let htmlSala =
+                '<div class="card mb-0">\n' +
+                '    <div class="card-header p-1" id="heading'+sala+'">\n' +
+                '        <h2 class="mb-0">\n' +
+                '            <button class="btn btn-link salasChat" type="button" data-toggle="collapse" data-target="#collapse'+sala+'" data-sala="'+sala+'" aria-expanded="true" aria-controls="collapse'+sala+'">\n' +
+                '                <i aria-hidden="true" class="far fa-comment-dots"></i> ' + sala +
+                '            </button>\n' +
+                '        </h2>\n' +
+                '    </div>\n' +
+                '    <div id="collapse'+sala+'" class="collapse" aria-labelledby="heading'+sala+'" data-parent="#listaSalas">\n' +
+                '        <div class="card-body p-0">\n' +
+                '            <ul class="list-group list-group-flush">\n' +
+                '            </ul>\n' +
+                '        </div>\n' +
+                '    </div>\n' +
+                '</div>';
+            listaSala.append(htmlSala);
         });
     });
 
     socket.on('retornoUsers', (users) => {
         if (users.length > 0) {
             let sala = users[0].sala;
-            $('#sala-' + sala).html(users.map(x => {
-                return '<div class="list-group-item list-user"><small class="item-user">' + x.nome + '</small></div>';
+            $('#collapse' + sala).find('.card-body').find('ul').empty().append(users.map(x => {
+                return '<li class="list-group-item"><i class="fas fa-user fa-sm" aria-hidden="true"></i> ' + x.nome + '</li>';
             }));
         }
     });
@@ -40,7 +51,7 @@ jQuery(function () {
         let sala = $(this).data('sala');
         socket.emit('login', {'nome': $('#inputUsuario').val(), 'sala': sala});
         socket.emit('getUsers', sala);
-        $('#salaConectada').html('<i class="fas fa-globe-americas fa-lg text-success"></i> Sala: ' + sala);
+        $('#salaConectada').html('<i class="fas fa-globe-americas fa-lg text-success" aria-hidden=true></i> Sala: ' + sala);
     });
 
     $('#btnMensagem').on('click', function () {
@@ -67,12 +78,6 @@ jQuery(function () {
         if (e.key==="Enter") {
             $('#btnMensagem').trigger('click');
         }
-    });
-
-    $(document).on('click', '.list-group-item', function() {
-        $('.fas', this)
-            .toggleClass('fa-chevron-right')
-            .toggleClass('fa-chevron-down');
     });
 });
 
