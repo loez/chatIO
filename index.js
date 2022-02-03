@@ -10,19 +10,21 @@ const io = require('socket.io')(server,{
     }
 });
 
+const porta = 8080;
 const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas } = require('./usuarios')
 
 
 app.use(express.static(__dirname + '/'));
 app.use(express.static(__dirname + '/views'));
 
-server.listen(80, function () {
-    console.log('Rodando na porta 80')
+server.listen(porta, function () {
+    console.log('Rodando na porta ' + porta);
 });
 
 io.on('connection', (socket) => {
     const msgEntrou = '<i class="fas fa-sign-in-alt fa-2x"></i><br><small>Entrou</small>';
     const msgSaiu = '<i class="fas fa-sign-out-alt fa-2x"></i><br><small>Saiu</small>';
+    const digitando = '<span class="etc"><i></i><i></i><i></i></span>';
 
     function CriaMensagem(usuario, msg) {
         return {
@@ -53,6 +55,16 @@ io.on('connection', (socket) => {
         socket.broadcast.to(usuario.sala).emit('mensagem', message);
 
         callback(message);
+    });
+
+    socket.on("digitando", () => {
+        const usuario = getUsuario(socket.id);
+        socket.broadcast.to(usuario.sala).emit('enviaDigitando',  CriaMensagem(usuario, digitando));
+    });
+
+    socket.on("limpaDigitando", () => {
+        const usuario = getUsuario(socket.id);
+        socket.broadcast.to(usuario.sala).emit('enviaLimpaDigitando',  usuario.nome);
     });
 
     socket.on("getSalas",() =>{

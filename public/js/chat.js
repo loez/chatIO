@@ -1,5 +1,8 @@
+let timeDigitando;
+
 jQuery(function () {
     const socket = io();
+
     $('#btnEntrar').on('click', function () {
         let inputUsuario = $('#inputUsuario');
         if (inputUsuario.val() === "") {
@@ -10,8 +13,17 @@ jQuery(function () {
     });
 
     socket.on('mensagem', (mensagem) => {
-        let mensagemAppend = retornaMensagem(mensagem);
-        $('#todasMensagens').get(0).insertAdjacentHTML('beforeend', mensagemAppend);
+        $('#todasMensagens').append(retornaMensagem(mensagem));
+    });
+
+    socket.on('enviaDigitando', (digitando) => {
+        if (!$('#digitando-'+digitando.Usuario).length) {
+            $('#todasMensagens').append(retornaMensagem(digitando, false, true));
+        }
+    });
+
+    socket.on('enviaLimpaDigitando', (usuario) => {
+        $('#digitando-'+usuario).remove();
     });
 
     socket.on('retornoSalas', (salas) => {
@@ -62,9 +74,11 @@ jQuery(function () {
                 'Usuario': $('#inputUsuario').val()
             };
 
+        socket.emit('limpaDigitando');
+
         socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
             inputMensagem.val('');
-            $('#todasMensagens').get(0).insertAdjacentHTML('beforeend', retornaMensagem(callback, true));
+            $('#todasMensagens').append(retornaMensagem(callback, true));
         });
     });
 
@@ -75,24 +89,37 @@ jQuery(function () {
     });
 
     $('#inputMensagem').on('keyup', function(e) {
+        clearTimeout(timeDigitando);
+        socket.emit('digitando');
+        limpaDigitando();
         if (e.key==="Enter") {
             $('#btnMensagem').trigger('click');
         }
     });
+
+    function limpaDigitando() {
+        timeDigitando = window.setTimeout(
+            function () {
+                socket.emit('limpaDigitando');
+            }, 3000);
+    }
 });
 
-function retornaMensagem(mensagem, self = false) {
-    let html;
+function retornaMensagem(mensagem, self = false, digitando = false) {
+    let html,
+        id = 'id="digitando-'+mensagem.Usuario+'"';
     if (!self) {
         html =
-            '<li class="chat-left">\n' +
+            '<li class="chat-left" ' + (digitando ? id : '') +'>\n' +
             '    <div class="chat-avatar">\n' +
             '        <i class="fas fa-user-circle" aria-hidden="true"></i>\n' +
             '        <div class="chat-name">'+mensagem.Usuario+'</div>\n' +
             '    </div>\n' +
-            '    <div class="chat-text">'+mensagem.Mensagem+'</div>\n' +
-            '    <div class="chat-hour">'+mensagem.Hora+' <span class="fa fa-check-circle"></span></div>\n' +
-            '</li>'
+            '    <div class="chat-text">'+mensagem.Mensagem+'</div>\n';
+            if (!digitando) {
+                html += '    <div class="chat-hour">' + mensagem.Hora + ' <span class="fa fa-check-circle"></span></div>\n';
+            }
+        html += '</li>'
     } else {
         html =
             '<li class="chat-right">\n' +
