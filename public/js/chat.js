@@ -1,6 +1,13 @@
 let timeDigitando;
 
 jQuery(function () {
+    $.fn.extend({
+        autoScroll: function () {
+            return this.each(function () {
+                $(this).animate({ scrollTop: $(this).prop("scrollHeight") }, 500);
+            });
+        }
+    });
     const socket = io();
 
     $('#btnEntrar').on('click', function () {
@@ -13,12 +20,12 @@ jQuery(function () {
     });
 
     socket.on('mensagem', (mensagem) => {
-        $('#todasMensagens').append(retornaMensagem(mensagem));
+        $('#todasMensagens').append(retornaMensagem(mensagem)).autoScroll();
     });
 
     socket.on('enviaDigitando', (digitando) => {
         if (!$('#digitando-'+digitando.Usuario).length) {
-            $('#todasMensagens').append(retornaMensagem(digitando, false, true));
+            $('#todasMensagens').append(retornaMensagem(digitando, false, true)).autoScroll();
         }
     });
 
@@ -78,7 +85,7 @@ jQuery(function () {
 
         socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
             inputMensagem.val('');
-            $('#todasMensagens').append(retornaMensagem(callback, true));
+            $('#todasMensagens').append(retornaMensagem(callback, true)).autoScroll();
         });
     });
 
@@ -92,7 +99,7 @@ jQuery(function () {
         clearTimeout(timeDigitando);
         socket.emit('digitando');
         limpaDigitando();
-        if (e.key==="Enter") {
+        if (e.key==="Enter" && $('#inputMensagem').val().trim() !== "") {
             $('#btnMensagem').trigger('click');
         }
     });

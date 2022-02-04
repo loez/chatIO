@@ -4,7 +4,7 @@ html,body {
 }
 
 .max-size-chat {
-    height: calc(100vh - 96px);
+    min-height: calc(100vh - 96px);
     max-height: calc(100vh - 96px);
     overflow: auto;
 }

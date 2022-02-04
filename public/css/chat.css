@@ -280,12 +280,13 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin: 0 0 0 15px;
+    margin: 0 0 0 5px;
 }
 
 .chat-container li .chat-hour > span {
     font-size: 16px;
     color: #9ec94a;
+    margin-left: 3px;
 }
 
 .chat-container li.chat-right > .chat-hour {
