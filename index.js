@@ -10,6 +10,8 @@ const io = require('socket.io')(server,{
     }
 });
 
+global.db = require('./db');
+
 const porta = 8080;
 const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas } = require('./usuarios')
 
@@ -34,9 +36,14 @@ io.on('connection', (socket) => {
         };
     }
 
-    socket.on("login", ({nome, sala}) => {
+    socket.on("login", ({nome, sala}, callback) => {
         const { usuario } = adicionaUsuario(socket.id, nome, sala)
         socket.join(usuario.sala);
+        global.db.SalvaSala(sala);
+
+        global.db.RetornaMensagens(usuario.sala).then((mensagens) => {
+            callback(mensagens["0"].Mensagens);
+        });
 
         if (usuario.salaOld !== undefined) {
             socket.broadcast.to(usuario.salaOld).emit('mensagem', CriaMensagem(usuario, msgSaiu));
@@ -53,6 +60,8 @@ io.on('connection', (socket) => {
         message['Hora'] = moment().format('HH:mm:ss');
 
         socket.broadcast.to(usuario.sala).emit('mensagem', message);
+
+        global.db.SalvaMensagem(usuario.sala, message);
 
         callback(message);
     });

@@ -4,7 +4,7 @@ jQuery(function () {
     $.fn.extend({
         autoScroll: function () {
             return this.each(function () {
-                $(this).animate({ scrollTop: $(this).prop("scrollHeight") }, 500);
+                $(this).animate({ scrollTop: $(this).prop("scrollHeight") }, 'slow');
             });
         }
     });
@@ -67,8 +67,14 @@ jQuery(function () {
     });
 
     $(document).on('click', '.salasChat', function () {
-        let sala = $(this).data('sala');
-        socket.emit('login', {'nome': $('#inputUsuario').val(), 'sala': sala});
+        let sala = $(this).data('sala'),
+            usuarioLogado = $('#inputUsuario').val();
+        socket.emit('login', {'nome': usuarioLogado, 'sala': sala}, (mensagens) => {
+            let htmlMensagem = mensagens.map(x => {
+                return retornaMensagem({ 'Usuario': x.usuario, 'Mensagem': x.mensagem, 'Hora': x.hora}, (x.usuario === usuarioLogado))
+            })
+            $('#todasMensagens').html(htmlMensagem);
+        });
         socket.emit('getUsers', sala);
         $('#salaConectada').html('<i class="fas fa-globe-americas fa-lg text-success" aria-hidden=true></i> Sala: ' + sala);
     });

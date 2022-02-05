@@ -13,6 +13,7 @@
     "express": "^4.17.2",
     "jquery": "^3.6.0",
     "moment": "^2.29.1",
+    "mongoose": "^6.2.0",
     "socket.io": "^4.4.1"
   }
 }
