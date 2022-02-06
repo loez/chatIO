@@ -268,3 +268,26 @@ span.chat-time {
     }
 
 }
+
+.dragPai {
+    position: absolute;
+    z-index: 9;
+    text-align: center;
+}
+
+.dragFilho {
+    padding: 10px;
+    cursor: move;
+    z-index: 10;
+}
+
+video {
+    height: 300px;
+    border-radius: 1rem;
+    margin: 0.5rem;
+    width: 400px;
+    object-fit: cover;
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+}

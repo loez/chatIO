@@ -8,7 +8,13 @@ jQuery(function () {
             });
         }
     });
-    const socket = io();
+    const socket = io("/");
+
+    const peer = new Peer(undefined, {
+        path: "/peerjs",
+        host: "/",
+        port: "8080",
+    });
 
     $('#btnEntrar').on('click', function () {
         let inputUsuario = $('#inputUsuario');
@@ -110,12 +116,54 @@ jQuery(function () {
         }
     });
 
+    $('.fa-video').on('click',function (){
+        inicializaVideo();
+    })
+
     function limpaDigitando() {
         timeDigitando = window.setTimeout(
             function () {
                 socket.emit('limpaDigitando');
             }, 3000);
     }
+
+    const inicializaVideo = () => new Promise((success,reject)=> {
+        navigator.mediaDevices.getUserMedia({
+            audio:true,
+            video:true,
+        })
+            .then((streamVideo) => {
+                window.localStream = streamVideo;
+                retornaVideoFrame('teste')
+                adicionaVideo($('#meuVideo'+'teste'), streamVideo);
+
+                peer.on("call", (call) => {
+                    call.answer(streamVideo);
+                    retornaVideoFrame('teste')
+                    const video = $('#meuVideoteste');
+                    call.on("stream", (userVideoStream) => {
+                        adicionaVideo(video, userVideoStream);
+                    });
+                });
+
+                socket.on("video-chat", (usuario) => {
+                    conectarNovoUsuario(usuario, streamVideo);
+                });
+
+            })
+    })
+
+    const conectarNovoUsuario = (idUsuario, stream) => {
+        const call = peer.call(idUsuario, stream);
+        retornaVideoFrame('teste1')
+        const video = $('#meuVideoteste1');
+        call.on("stream", (userVideoStream) => {
+            adicionaVideo(video, userVideoStream);
+        });
+    };
+
+    //inicia o video chamar ao clicar na webcam algo assim inicializaVideo();
+
 });
 
 function retornaMensagem(mensagem, self = false, digitando = false) {
@@ -145,4 +193,55 @@ function retornaMensagem(mensagem, self = false, digitando = false) {
             '</li>';
     }
     return html;
+}
+
+function adicionaVideo(elementoVideo, myVideoStream) {
+    document.getElementById(elementoVideo.attr('id')).srcObject = myVideoStream;
+    document.getElementById(elementoVideo.attr('id')).addEventListener("loadedmetadata", () => {
+        document.getElementById(elementoVideo.attr('id')).play();
+    });
+}
+
+
+function dragElement(elementoPai,elementoFilho) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (elementoFilho) {
+        elementoFilho.onmousedown = dragMouseDown;
+    } else {
+        elementoPai.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+        e.preventDefault();
+
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elementoPai.style.top = (elementoPai.offsetTop - pos2) + "px";
+        elementoPai.style.left = (elementoPai.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+function retornaVideoFrame(id){
+    let dados =  '<div id="divPai'+id+'" class="dragPai">'+
+                    '<video class="dragFilho" id="meuVideo'+id+'"></video>'+
+                    '<p>teste'+id+'</p>'+
+                '</div>';
+    $('#inicio').append(dados);
+    dragElement(document.getElementById('divPai'+id),document.getElementById('meuVideo'+id));
 }

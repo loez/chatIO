@@ -10,6 +10,13 @@ const io = require('socket.io')(server,{
     }
 });
 
+const { ExpressPeerServer } = require('peer');
+
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    path: '/peerjs'
+});
+
 global.db = require('./db');
 
 const porta = 8080;
@@ -18,6 +25,8 @@ const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas } 
 
 app.use(express.static(__dirname + '/'));
 app.use(express.static(__dirname + '/views'));
+
+app.use(peerServer)
 
 server.listen(porta, function () {
     console.log('Rodando na porta ' + porta);
@@ -42,7 +51,7 @@ io.on('connection', (socket) => {
         global.db.SalvaSala(sala);
 
         global.db.RetornaMensagens(usuario.sala).then((mensagens) => {
-            callback(mensagens["0"].Mensagens);
+            callback((mensagens.length > 0 ? mensagens["0"].Mensagens : ''));
         });
 
         if (usuario.salaOld !== undefined) {
