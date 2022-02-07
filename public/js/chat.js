@@ -116,7 +116,7 @@ jQuery(function () {
         }
     });
 
-    $('.fa-video').on('click',function (){
+    $('#btnVideo').on('click',function (){
         inicializaVideo();
     })
 
@@ -127,31 +127,29 @@ jQuery(function () {
             }, 3000);
     }
 
-    const inicializaVideo = () => new Promise((success,reject)=> {
+    function inicializaVideo() {
         navigator.mediaDevices.getUserMedia({
-            audio:true,
-            video:true,
-        })
-            .then((streamVideo) => {
-                window.localStream = streamVideo;
+            audio: true,
+            video: true,
+        }).then((streamVideo) => {
+            window.localStream = streamVideo;
+            retornaVideoFrame('teste')
+            adicionaVideo($('#meuVideo' + 'teste'), streamVideo);
+
+            peer.on("call", (call) => {
+                call.answer(streamVideo);
                 retornaVideoFrame('teste')
-                adicionaVideo($('#meuVideo'+'teste'), streamVideo);
-
-                peer.on("call", (call) => {
-                    call.answer(streamVideo);
-                    retornaVideoFrame('teste')
-                    const video = $('#meuVideoteste');
-                    call.on("stream", (userVideoStream) => {
-                        adicionaVideo(video, userVideoStream);
-                    });
+                const video = $('#meuVideoteste');
+                call.on("stream", (userVideoStream) => {
+                    adicionaVideo(video, userVideoStream);
                 });
+            });
 
-                socket.on("video-chat", (usuario) => {
-                    conectarNovoUsuario(usuario, streamVideo);
-                });
-
-            })
-    })
+            socket.on("video-chat", (usuario) => {
+                conectarNovoUsuario(usuario, streamVideo);
+            });
+        })
+    }
 
     const conectarNovoUsuario = (idUsuario, stream) => {
         const call = peer.call(idUsuario, stream);
@@ -161,9 +159,6 @@ jQuery(function () {
             adicionaVideo(video, userVideoStream);
         });
     };
-
-    //inicia o video chamar ao clicar na webcam algo assim inicializaVideo();
-
 });
 
 function retornaMensagem(mensagem, self = false, digitando = false) {
@@ -204,7 +199,7 @@ function adicionaVideo(elementoVideo, myVideoStream) {
 
 
 function dragElement(elementoPai,elementoFilho) {
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     if (elementoFilho) {
         elementoFilho.onmousedown = dragMouseDown;
     } else {
