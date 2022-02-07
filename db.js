@@ -61,7 +61,7 @@ const RetornaMensagens = (sala) => new Promise((success) => {
             }
         },
         { '$lookup': {
-            'from': 'mensagems',
+            'from': 'mensagens',
             'localField': '_id',
             'foreignField': 'sala',
             'as': 'Mensagens'

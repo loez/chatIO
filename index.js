@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
         global.db.SalvaSala(sala);
 
         global.db.RetornaMensagens(usuario.sala).then((mensagens) => {
-            callback((mensagens.length > 0 ? mensagens["0"].Mensagens : ''));
+            callback((mensagens.length > 0 ? mensagens["0"].Mensagens : []));
         });
 
         if (usuario.salaOld !== undefined) {
