@@ -1,71 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Chat Socket IO</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
-          integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
-    <script type="text/javascript" src="../public/js/jquery.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js"
-            integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2"
-            crossorigin="anonymous"></script>
-    <script src="../public/js/socket.io.js"></script>
-    <link href="../public/css/estilo.css" rel="stylesheet"/>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link id="favicon" rel="shortcut icon" type="icon" href="../public/img/favicon.ico">
+    <link href="../public/css/newStyle.css" rel="stylesheet"/>
+    <title>ChatIO</title>
 </head>
 <body>
 <div class="container">
-    <div class="row">
-        <div class="col-4 pr-1">
-            <div class="card border-right-0" style="max-width: 400px;">
-                <div class="card-header bg-transparent">
-                    <div class="navbar navbar-expand p-0">
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">Salas</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="card-body p-0" style="height: 768px; overflow: auto">
-                    <ul class="list-group list-group-flush align-items-center" id="listaSalas">
-                        <a class="list-group-item list-group-item-action salasChat" href="#" data-sala="Geral" id="salaTodas">Geral</a>
-                    </ul>
-                </div>
-                <div class="card-footer p-1">
-                    <div class="row">
-                        <div class="col">
-                            <input type="text" class="form-control" id="inputUsuario" name="inputUsuario" placeholder="Usuário">
-                        </div>
-                        <div class="col-auto align-self-center">
-                            <button type="button" id="btnEntrar" class="btn btn-primary">Entrar</button>
+    <div class="card-group">
+        <div class="card card-salas">
+            <div class="card-body">
+                <input class="form-control" placeholder="Pesquisa" aria-label="Pesquisa">
+                <ul id="listaSalas" class="list-group  list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center salaChat">
+                        <strong><i class="fa-regular fa-comments .icon-sala" aria-hidden="true"></i> Sala 1</strong>
+                        <span class="badge bg-primary rounded-pill">14</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center salaChat">
+                        <strong style="color: #5e5b68;"><i class="fa-regular fa-comments" aria-hidden="true"></i> Sala 2</strong>
+                        <span class="badge bg-primary rounded-pill">6</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center salaChat">
+                        <strong style="color: #5e5b68;"><i class="fa-regular fa-comments" aria-hidden="true"></i> Sala 3</strong>
+                        <span class="badge bg-primary rounded-pill">8</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col">
+                        <div class="icon-input">
+                            <input type="text" class="form-control" id="inputUsuario" name="inputUsuario"
+                                   placeholder="Usuário" aria-label="Usuário">
+                            <span id="btnEntrar" class="icon">
+                                <i class="fa-solid fa-right-to-bracket fa-lg" aria-hidden="true"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col pl-0">
-            <div class="card" style="max-width: 800px;">
-                <div class="card-header bg-transparent">
-                    <div class="navbar navbar-expand p-0">
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link" id="salaConectada">Não Conectado</a>
-                            </li>
-                        </ul>
-                    </div>
+        <div class="card">
+            <div class="card-header card-chat">
+                <nav class="navbar-nav navbar-light">
+                    <a id="salaConectada" class="navbar-brand pt-0" href="#">
+                        <i aria-hidden="true" class="fas fa-globe-americas fa-lg offline"></i>
+                    </a>
+                </nav>
+            </div>
+            <div class="card-body pr-0 pb-0 pt-0">
+                <div class="chat-container">
+                    <ul id="todasMensagens" class="chat">
+                        <li class="left clearfix"><span class="chat-img pull-left">
+                            <img alt="User Avatar" class="img-circle"
+                                 src="http://placehold.it/50/55C1E7/fff&amp;text=L">
+                        </span>
+                            <div class="chat-body clearfix">
+                                <div class="header">
+                                    <strong class="primary-font">Luiz</strong> <small class="text-muted">
+                                    <i class="fa-regular fa-clock" aria-hidden="true"></i>14:58</small>
+                                </div>
+                                <p class="msg-left">
+                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare
+                                    dolor, quis ullamcorper ligula sodales.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="right clearfix"><span class="chat-img pull-right">
+                            <img alt="User Avatar" class="img-circle"
+                                 src="http://placehold.it/50/FA6F57/fff&amp;text=R">
+                        </span>
+                            <div class="chat-body pull-right clearfix">
+                                <div class="header pull-right">
+                                    <small class="text-muted">15:04<i class="fa-regular fa-clock" aria-hidden="true"></i></small>
+                                    <strong style="margin-left: 5px;" class="primary-font">Raphael</strong>
+                                </div>
+                                <p class="pull-right msg-right">
+                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare
+                                    dolor, quis ullamcorper ligula sodales.
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card-body border-left-0 p-4" style="height: 768px; overflow: auto" id="todasMensagens">
-                </div>
-                <div class="card-footer p-1">
-                    <div class="row text-center">
-                        <div class="col pr-0">
-                            <input id="inputMensagem" type="text" class="form-control" placeholder="Mensagem">
-                        </div>
-                        <div class="col-auto align-self-center">
-                            <button type="button" class="btn btn-primary" id="btnMensagem">Enviar</button>
+            </div>
+            <div class="card-footer">
+                <div class="row text-center">
+                    <div class="col pr-0">
+                        <div class="icon-input">
+                            <input id="inputMensagem" type="text" class="form-control" placeholder="Mensagem"
+                                   aria-label="Mensagem">
+                            <span id="btnVideo" class="icon icon-2">
+                                <i aria-hidden="true" class="far fas fa-camera fa-lg"></i>
+                            </span>
+                            <span id="btnMensagem" class="icon">
+                                <i class="far fa-paper-plane fa-lg" aria-hidden="true"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -73,74 +110,15 @@
         </div>
     </div>
 </div>
-<script>
-    jQuery(function () {
-        const socket = io();
-        let i = 0;
-        $('#btnEntrar').on('click',function (){
-            if($('#inputUsuario').val() === ""){
-                return false;
-            }
-            socket.emit('getSalas','');
-        });
 
-        socket.on('mensagem',(mensagem) => {
-            if(typeof (mensagem) === 'object'){
-                let mensagemAppend = retornaMensagem(mensagem['Mensagem'],mensagem['Usuario']);
-                $('#todasMensagens').get(0).insertAdjacentHTML('beforeend',mensagemAppend);
-            }else{
-                console.log(mensagem);
-            }
-        })
+<!-- Option 1: Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/eed93c653a.js" crossorigin="anonymous"></script>
+<script src="../public/js/socket.io.js"></script>
+<script src="../public/js/peerjs.min.js"></script>
+<script src="../public/js/newChat.js"></script>
 
-        socket.on('retornoSalas',(salas)=>{
-            $("a[id^='salas']").remove();
-            salas.forEach(function (valor,index){
-                $('<a></a>').text(valor).attr('id','salas'+index).attr('data-sala',valor).addClass('list-group-item').addClass('salasChat').addClass('list-group-item-action').attr('href','#').appendTo('#listaSalas');
-            })
-        })
-
-        $(document).on('click','.salasChat',function (){
-            socket.emit('login',{'nome': $('#inputUsuario').val() , 'sala': $(this).data('sala')})
-        });
-
-        $('#btnMensagem').on('click',function (){
-            let mensagemAppend = retornaMensagem($('#inputMensagem').val(),'',true);
-            $('#todasMensagens').get(0).insertAdjacentHTML('beforeend',mensagemAppend);
-
-            let mensagemEnvio = {
-                'Mensagem' : $('#inputMensagem').val(),
-                'Usuario' : $('#inputUsuario').val()
-            };
-
-            socket.emit('enviaMensagem',mensagemEnvio);
-        })
-
-    })
-    function retornaMensagem(mensagem,usuario,self = false){
-        let html= '';
-        if(!self){
-            html += '    <div class="d-flex align-items-baseline mb-4" name="mensagemRecebida"> '+
-                '       <div class="card d-inline-block p-2 px-3 m-1">'+
-                '           <div class="row"> '+
-                '               <label>'+ usuario + '</label>'+
-                '           </div>'+
-                '           <div class="row">'+
-                '               <label>'+ mensagem + '</label>'+
-                '           </div>'+
-                '       </div>'+
-                '     </div>';
-            return html;
-        }else{
-            html += '<div class="d-flex align-items-baseline text-end justify-content-end mb-4" name="mensagemEnviada">'+
-                '   <div>'+
-                '       <label class="card d-inline-block p-2 px-3 m-1">'+mensagem+'</label>'+
-                '   </div>'+
-                '</div>';
-
-            return html;
-        }
-    }
-</script>
 </body>
 </html>

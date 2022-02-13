@@ -1,0 +1,168 @@
+.container {
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+}
+
+.card-salas {
+    height: calc(100vh - 1.5rem);
+    flex: 0 1 auto !important;
+}
+
+#salaConectada {
+    font-weight: 700;
+}
+
+.icon-input {
+    position: relative;
+}
+
+.icon-input .icon {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    z-index: 1;
+    color: #cbced0;
+    margin-top: -10px;
+    cursor: pointer;
+    transition: .3s ease all;
+}
+
+.icon-input .icon.icon-2{
+    right: 37px;
+}
+
+.icon-input .icon:hover {
+    color: #000000;
+}
+
+.card-header.card-chat {
+    background-color: #ffffff;
+    border-bottom: none;
+    padding-top: 20px;
+}
+
+.chat
+{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chat li
+{
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+.chat li.left .chat-body
+{
+    margin-left: 60px;
+    width: 50%;
+}
+
+.chat li.right .chat-body
+{
+    margin-right: 8px;
+    width: 50%;
+}
+
+.chat li .chat-body p
+{
+    margin: 0;
+}
+
+.pull-left {
+    float: left !important;
+}
+
+
+.pull-right {
+    float: right !important;
+}
+
+.img-circle {
+    border-radius: 50%;
+}
+
+.msg-left {
+    background-color: #5e5ff5;
+    border-radius: 0 6px 6px 6px;
+    padding: 5px;
+    color: #f0f7f5;
+}
+
+.msg-right {
+    background-color: #f5f9fc;
+    border-radius: 6px 0 6px 6px;
+    padding: 5px;
+    color: #9698ae;
+    min-width: 100%;
+    text-align: right;
+}
+
+.chat-container {
+    overflow: auto;
+    max-height: calc(100vh - 144px);
+    padding-right: 1em;
+}
+
+.offline {
+    color: #fb3868;
+}
+
+.online {
+    color: #08c687;
+}
+
+#listaSalas {
+    margin-top: 8px;
+}
+
+.salaChat {
+    color: #5e5b68;
+    cursor: pointer;
+}
+
+@keyframes dot-anim {
+    100% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(0, -6px);
+    }
+    0% {
+        transform: translate(0, 0);
+    }
+}
+
+.etc i {
+    width: 6px;
+    height: 6px;
+    background: #f0f7f5;
+    border-radius: 100%;
+    display: inline-block;
+    animation: dot-anim 1s infinite linear;
+    transform: translate(0, 0);
+}
+
+.etc {
+    padding-top: 2px;
+    display: block;
+    position: relative;
+}
+
+.etc i + i {
+    margin-left: 3px;
+}
+
+.etc i:nth-child(1) {
+    animation-delay: .5s;
+}
+
+.etc i:nth-child(2) {
+    animation-delay: .4s;
+}
+
+.etc i:nth-child(3) {
+    animation-delay: .3s;
+}
