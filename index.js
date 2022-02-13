@@ -5,7 +5,7 @@ const moment = require('moment');
 const server = http.createServer(app);
 const io = require('socket.io')(server,{
     cors: {
-        origin: ["http://localhost"],
+        origin: "*",
         methods: ["GET", "POST"],
     }
 });
@@ -103,6 +103,10 @@ io.on('connection', (socket) => {
         }
 
         deletaUsuario(socket.id);
+    })
+
+    socket.on("abrir-video",(id) => {
+        socket.broadcast.emit('video-chat',id)
     })
 
 })

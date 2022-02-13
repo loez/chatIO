@@ -1,5 +1,7 @@
 let timeDigitando;
 
+const socket = io("http://192.168.1.111:8080");
+
 jQuery(function () {
     $.fn.extend({
         autoScroll: function () {
@@ -8,13 +10,7 @@ jQuery(function () {
             });
         }
     });
-    const socket = io("/");
 
-    const peer = new Peer(undefined, {
-        path: "/peerjs",
-        host: "/",
-        port: "8080",
-    });
 
     $('#btnEntrar').on('click', function () {
         let inputUsuario = $('#inputUsuario');
@@ -128,6 +124,14 @@ jQuery(function () {
     }
 
     function inicializaVideo() {
+        const peer = new Peer(undefined, {
+            path: "/peerjs",
+            host: "/",
+            port: "8080",
+        });
+
+        window.peer = peer;
+
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
@@ -145,10 +149,14 @@ jQuery(function () {
                 });
             });
 
-            socket.on("video-chat", (usuario) => {
-                conectarNovoUsuario(usuario, streamVideo);
+            socket.on("video-chat", (idUsuario) => {
+                conectarNovoUsuario(idUsuario, streamVideo);
             });
         })
+
+        peer.on("open", (id) => {
+            socket.emit("abrir-video",(id));
+        });
     }
 
     const conectarNovoUsuario = (idUsuario, stream) => {
