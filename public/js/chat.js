@@ -1,6 +1,6 @@
 let timeDigitando;
 
-const socket = io("http://192.168.1.111:8080");
+const socket = io("http://localhost:8080");
 
 jQuery(function () {
     $.fn.extend({
@@ -10,8 +10,7 @@ jQuery(function () {
             });
         }
     });
-
-
+    
     $('#btnEntrar').on('click', function () {
         let inputUsuario = $('#inputUsuario');
         if (inputUsuario.val() === "") {

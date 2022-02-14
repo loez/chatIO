@@ -97,6 +97,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    socket.io.on("error", () => {
+        document.getElementById('msg-connection').innerHTML =
+            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-danger text-center">Perda de conexão com o servidor</div>';
+    });
+
+    socket.io.on("reconnect_attempt", (attempt) => {
+        document.getElementById('msg-connection').innerHTML =
+            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-warning text-center">Tentativa de reconexão '+attempt+'/30</div>';
+    });
+
+    socket.io.on("reconnect", () => {
+        document.getElementById('msg-connection').innerHTML =
+            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-success text-center">Conexão reestabelecida</div>';
+
+        setTimeout(() => {document.getElementById('msg-connection').innerHTML = ''}, 3000);
+    });
+
     function entrarNaSala() {
         let sala = this.dataset.sala,
             usuarioLogado = inputUsuario.value,
