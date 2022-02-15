@@ -1,19 +1,21 @@
 let timeDigitando;
 
+const qtdReconnection = 15;
+const socket = io("/", {reconnectionAttempts: qtdReconnection});
+
+const peer = new Peer(undefined, {
+    path: "/peerjs",
+    host: "/",
+    port: "8080",
+});
+
 document.addEventListener("DOMContentLoaded", function() {
-    const socket = io("/");
-
-    const peer = new Peer(undefined, {
-        path: "/peerjs",
-        host: "/",
-        port: "8080",
-    });
-
     let btnMensagem = document.getElementById('btnMensagem'),
         btnEntrar = document.getElementById('btnEntrar'),
         btnVideo = document.getElementById('btnVideo'),
         inputUsuario = document.getElementById('inputUsuario'),
-        inputMensagem = document.getElementById('inputMensagem');
+        inputMensagem = document.getElementById('inputMensagem'),
+        todasMensagens = document.getElementById('todasMensagens');
 
     btnEntrar.addEventListener("click", () => {
         if (inputUsuario.value === "") {
@@ -35,7 +37,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
             inputMensagem.value = '';
-            document.getElementById('todasMensagens').insertAdjacentHTML('beforeend', (retornaMensagem(callback, true)));
+            todasMensagens.insertAdjacentHTML('beforeend', (retornaMensagem(callback, true)));
+            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
         });
     });
 
@@ -58,22 +61,6 @@ document.addEventListener("DOMContentLoaded", function() {
         inicializaVideo();
     });
 
-    socket.on('mensagem', (mensagem) => {
-        document.getElementById('todasMensagens').insertAdjacentHTML('beforeend', retornaMensagem(mensagem));
-    });
-
-    socket.on('enviaDigitando', (digitando) => {
-        if (document.getElementById('digitando-'+digitando.Usuario) == null) {
-            document.getElementById('todasMensagens').insertAdjacentHTML('beforeend', retornaMensagem(digitando, false, true));
-        }
-    });
-
-    socket.on('enviaLimpaDigitando', (usuario) => {
-        if (document.getElementById('digitando-'+usuario) !== null) {
-            document.getElementById('digitando-' + usuario).remove();
-        }
-    });
-
     socket.on('retornoSalas', (salas) => {
         let listaSala = document.getElementById('listaSalas');
         listaSala.innerHTML = '';
@@ -81,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let htmlSala =
                 '<li class="list-group-item d-flex justify-content-between align-items-center salaChat" data-sala="'+sala+'">\n' +
                 '    <strong><i class="fa-regular fa-comments .icon-sala" aria-hidden="true"></i> '+sala+'</strong>\n' +
-                '    <span class="badge bg-primary rounded-pill">0</span>\n' +
+                '    <span id= "qtd-user-'+sala+'" class="badge bg-primary rounded-pill">0</span>\n' +
                 '</li>';
             listaSala.insertAdjacentHTML('beforeend', htmlSala);
         });
@@ -90,45 +77,40 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    socket.on('retornoUsers', (users) => {
-        if (users.length > 0) {
-            let sala = users[0].sala;
-            //Retornar qtd user
+    socket.on('mensagem', (mensagem) => {
+        todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(mensagem));
+        todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+    });
+
+    socket.on('enviaDigitando', (digitando) => {
+        if (document.getElementById('digitando-'+digitando.Usuario) == null) {
+            todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(digitando, false, true));
+            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
         }
-    });
-
-    socket.io.on("error", () => {
-        document.getElementById('msg-connection').innerHTML =
-            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-danger text-center">Perda de conexão com o servidor</div>';
-    });
-
-    socket.io.on("reconnect_attempt", (attempt) => {
-        document.getElementById('msg-connection').innerHTML =
-            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-warning text-center">Tentativa de reconexão '+attempt+'/30</div>';
-    });
-
-    socket.io.on("reconnect", () => {
-        document.getElementById('msg-connection').innerHTML =
-            '<div role="alert" style="border-top-left-radius: 0;border-top-right-radius: 0;" class="alert alert-success text-center">Conexão reestabelecida</div>';
-
-        setTimeout(() => {document.getElementById('msg-connection').innerHTML = ''}, 3000);
     });
 
     function entrarNaSala() {
         let sala = this.dataset.sala,
-            usuarioLogado = inputUsuario.value,
-            todasMsgs = document.getElementById('todasMensagens');
+            usuarioLogado = inputUsuario.value;
 
-        todasMsgs.innerHTML = '';
+        todasMensagens.innerHTML = '';
         socket.emit('login', {'nome': usuarioLogado, 'sala': sala}, (mensagens) => {
-            let msgsSalvas = mensagens.map(x => {
-                return retornaMensagem({
-                    'Usuario': x.usuario,
-                    'Mensagem': x.mensagem,
-                    'Hora': x.hora
-                }, (x.usuario === usuarioLogado))
+            let msgsSalvas = '',
+                groupMensagens = mensagens.map(x => {return {'data': x._id, 'mensagens': x.data}});
+
+            groupMensagens.forEach(x => {
+                msgsSalvas += '<li><div class="separator text-muted">'+(x.data === null ? 'Mensagens antigas' : x.data)+'</div></li>';
+                x.mensagens.forEach(y => {
+                    msgsSalvas +=  retornaMensagem({
+                        'Usuario': y.usuario,
+                        'Mensagem': y.mensagem,
+                        'Hora': y.hora
+                    }, (y.usuario === usuarioLogado));
+                })
             });
-            todasMsgs.innerHTML = msgsSalvas.join('');
+
+            todasMensagens.innerHTML = msgsSalvas
+            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
         });
         socket.emit('getUsers', sala);
         document.getElementById('salaConectada').innerHTML = '<i aria-hidden="true" class="fas fa-globe-americas fa-lg online"></i>\n' +
@@ -174,6 +156,36 @@ document.addEventListener("DOMContentLoaded", function() {
             adicionaVideo(video, userVideoStream);
         });
     };
+});
+
+socket.on('enviaLimpaDigitando', (usuario) => {
+    if (document.getElementById('digitando-'+usuario) !== null) {
+        document.getElementById('digitando-' + usuario).remove();
+    }
+});
+
+socket.on('retornoUsers', (users) => {
+    if (users.length > 0) {
+        let sala = users[0].sala;
+        document.getElementById('qtd-user-' + sala).innerText = users.length;
+    }
+});
+
+socket.io.on("error", () => {
+    document.getElementById('msg-connection').innerHTML =
+        '<div role="alert" class="alert alert-danger text-center border-avisos">Perda de conexão com o servidor</div>';
+});
+
+socket.io.on("reconnect_attempt", (attempt) => {
+    document.getElementById('msg-connection').innerHTML =
+        '<div role="alert" class="alert alert-warning text-center border-avisos">Tentativa de reconexão '+attempt+'/'+qtdReconnection+'</div>';
+});
+
+socket.io.on("reconnect", () => {
+    document.getElementById('msg-connection').innerHTML =
+        '<div role="alert" class="alert alert-success text-center border-avisos">Conexão reestabelecida</div>';
+
+    setTimeout(() => {document.getElementById('msg-connection').innerHTML = ''}, 3000);
 });
 
 function retornaMensagem(mensagem, self = false, digitando = false) {

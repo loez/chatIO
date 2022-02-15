@@ -166,3 +166,30 @@
 .etc i:nth-child(3) {
     animation-delay: .3s;
 }
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    font-size: 12px;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ededed;
+}
+
+.separator::before {
+    margin-right: .25em;
+}
+
+.separator::after {
+    margin-left: .25em;
+}
+
+.border-avisos {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}

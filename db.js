@@ -38,6 +38,7 @@ function SalvaMensagem(sala, mensagem) {
                 sala: retornoSala._id,
                 usuario: mensagem.Usuario,
                 mensagem: mensagem.Mensagem,
+                data: mensagem.Data,
                 hora: mensagem.Hora
             });
 
@@ -68,8 +69,38 @@ const RetornaMensagens = (sala) => new Promise((success) => {
         }}]).exec().then(r => success(r));
 });
 
+const RetornaMensagensGroup = (sala) => new Promise((success) => {
+    Mensagens.aggregate([
+        { '$lookup': {
+                'from': 'salas',
+                'localField': 'sala',
+                'foreignField': '_id',
+                'as': 'Sala'
+            },
+        },
+        { '$match' : {
+                "Sala.nome": sala
+            }
+        },
+        { '$group':  {
+                "_id": "$data",
+                "data": {
+                    "$push": "$$ROOT"
+                },
+                "count": { "$sum": 1 }
+            }
+        },
+        {
+            '$sort': {
+                _id: 1
+            }
+        }
+        ]).exec().then(r => success(r));
+});
+
 module.exports = {
     SalvaSala,
     SalvaMensagem,
-    RetornaMensagens
+    RetornaMensagens,
+    RetornaMensagensGroup
 }

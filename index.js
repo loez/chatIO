@@ -50,8 +50,8 @@ io.on('connection', (socket) => {
         socket.join(usuario.sala);
         global.db.SalvaSala(sala);
 
-        global.db.RetornaMensagens(usuario.sala).then((mensagens) => {
-            callback((mensagens.length > 0 ? mensagens["0"].Mensagens : []));
+        global.db.RetornaMensagensGroup(usuario.sala).then((mensagens) => {
+            callback((mensagens.length > 0 ? mensagens : []));
         });
 
         if (usuario.salaOld !== undefined) {
@@ -66,6 +66,7 @@ io.on('connection', (socket) => {
     socket.on("enviaMensagem", (message, callback) => {
         const usuario = getUsuario(socket.id);
 
+        message['Data'] = moment().format('YYYY-MM-DD');
         message['Hora'] = moment().format('HH:mm:ss');
 
         socket.broadcast.to(usuario.sala).emit('mensagem', message);
