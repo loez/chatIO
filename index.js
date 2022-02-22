@@ -20,7 +20,7 @@ const peerServer = ExpressPeerServer(server, {
 global.db = require('./db');
 
 const porta = 8080;
-const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas } = require('./usuarios')
+const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas, atualizaUsuarioPeer, getUsuariosSalaPeer } = require('./usuarios')
 
 
 app.use(express.static(__dirname + '/'));
@@ -61,6 +61,10 @@ io.on('connection', (socket) => {
 
         socket.broadcast.to(usuario.sala).emit('mensagem', CriaMensagem(usuario, msgEntrou));
         socket.broadcast.to(usuario.sala).emit('retornoUsers', getUsuariosSala(usuario.sala));
+        const listaPeers = getUsuariosSalaPeer(usuario.sala);
+        listaPeers.forEach((value) => {
+            io.to(socket.id).emit('video-chat',value);
+        })
     });
 
     socket.on("enviaMensagem", (message, callback) => {
@@ -107,6 +111,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on("abrir-video",(id) => {
+        atualizaUsuarioPeer(socket.id,id);
         socket.broadcast.emit('video-chat',id)
     })
 
