@@ -2,6 +2,14 @@ let timeDigitando;
 
 const socket = io("http://localhost:8080");
 
+const peer = new Peer(undefined, {
+    path: "/peerjs",
+    host: "/",
+    port: "8080",
+});
+
+window.peer = peer;
+
 jQuery(function () {
     $.fn.extend({
         autoScroll: function () {
@@ -123,45 +131,41 @@ jQuery(function () {
     }
 
     function inicializaVideo() {
-        const peer = new Peer(undefined, {
-            path: "/peerjs",
-            host: "/",
-            port: "8080",
-        });
 
-        window.peer = peer;
 
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
         }).then((streamVideo) => {
             window.localStream = streamVideo;
-            retornaVideoFrame('teste')
-            adicionaVideo($('#meuVideo' + 'teste'), streamVideo);
-
-            peer.on("call", (call) => {
-                call.answer(streamVideo);
-                retornaVideoFrame('teste')
-                const video = $('#meuVideoteste');
-                call.on("stream", (userVideoStream) => {
-                    adicionaVideo(video, userVideoStream);
-                });
-            });
-
-            socket.on("video-chat", (idUsuario) => {
-                conectarNovoUsuario(idUsuario, streamVideo);
-            });
+            retornaVideoFrame(peer.id.toString())
+            adicionaVideo($('#meuVideo' + peer.id.toString()), streamVideo);
+            socket.emit("abrir-video",(peer.id));
         })
 
-        peer.on("open", (id) => {
-            socket.emit("abrir-video",(id));
-        });
     }
 
+    peer.on("call", (call) => {
+        call.answer(window.localStream);
+        retornaVideoFrame(call.peer)
+        const video = $('#meuVideo' + call.peer);
+        call.on("stream", (userVideoStream) => {
+            adicionaVideo(video, userVideoStream);
+        });
+    });
+
+
+    socket.on("video-chat", (idUsuario) => {
+        conectarNovoUsuario(idUsuario, window.localStream);
+    });
+
     const conectarNovoUsuario = (idUsuario, stream) => {
+        if(stream === undefined){
+            stream = createMediaStreamFake();
+        }
         const call = peer.call(idUsuario, stream);
-        retornaVideoFrame('teste1')
-        const video = $('#meuVideoteste1');
+        retornaVideoFrame(idUsuario)
+        const video = $('#meuVideo' + idUsuario);
         call.on("stream", (userVideoStream) => {
             adicionaVideo(video, userVideoStream);
         });
@@ -247,3 +251,26 @@ function retornaVideoFrame(id){
     $('#inicio').append(dados);
     dragElement(document.getElementById('divPai'+id),document.getElementById('meuVideo'+id));
 }
+
+const createMediaStreamFake = () => {
+    return new MediaStream([createEmptyAudioTrack(), createEmptyVideoTrack({ width:640, height:480 })]);
+}
+
+const createEmptyAudioTrack = () => {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const dst = oscillator.connect(ctx.createMediaStreamDestination());
+    oscillator.start();
+    const track = dst.stream.getAudioTracks()[0];
+    return Object.assign(track, { enabled: false });
+}
+
+const createEmptyVideoTrack = ({ width, height }) => {
+    const canvas = Object.assign(document.createElement('canvas'), { width, height });
+    canvas.getContext('2d').fillRect(0, 0, width, height);
+
+    const stream = canvas.captureStream();
+    const track = stream.getVideoTracks()[0];
+
+    return Object.assign(track, { enabled: false });
+};

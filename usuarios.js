@@ -20,6 +20,13 @@ const getUsuario = id => {
     return usuarios.find(user => user.id === id)
 }
 
+const atualizaUsuarioPeer = (id,idPeer) => {
+    const existeUsuario = usuarios.find(user => user.id === id)
+    if(existeUsuario){
+        existeUsuario.idPeer = idPeer;
+    }
+}
+
 const deletaUsuario = (id) => {
     const index = usuarios.findIndex((user) => user.id === id);
     if (index !== -1) return usuarios.splice(index, 1)[0];
@@ -29,4 +36,6 @@ const getUsuariosSala = (room) => usuarios.filter(user => user.sala === room).fi
 
 const getSalas = () => [...new Set(usuarios.map(x=> x.sala))];
 
-module.exports = { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas }
+const getUsuariosSalaPeer = (room) => usuarios.filter(user => user.sala === room).filter(x=> x.idPeer !== undefined).map(x=> x.idPeer);
+
+module.exports = { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas, atualizaUsuarioPeer,getUsuariosSalaPeer }
