@@ -1,8 +1,13 @@
 let timeDigitando,
-    imagemChat = null;
+    imagemChat = null,
+    countMsgs = 0,
+    speech = window.speechSynthesis,
+    voicesIdioma = [],
+    listVoices = [];
 
 const qtdReconnection = 15;
 const socket = io("/", {reconnectionAttempts: qtdReconnection});
+const scroll = {behavior: "smooth", block: "end", inline: "end"};
 
 const peer = new Peer(undefined, {
     path: "/peerjs",
@@ -18,8 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
         inputMensagem = document.getElementById('inputMensagem'),
         todasMensagens = document.getElementById('todasMensagens'),
         myVideo = document.createElement("video"),
-        preview = document.getElementById('img-preview'),
-        scroll = {behavior: "smooth", block: "end", inline: "end"};
+        preview = document.getElementById('img-preview');
 
     btnEntrar.addEventListener("click", () => {
         if (inputUsuario.value === "") {
@@ -49,8 +53,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
                 inputMensagem.value = '';
-                todasMensagens.insertAdjacentHTML('beforeend', (retornaMensagem(callback, true)));
-                todasMensagens.scrollIntoView(scroll);
+                insereMensagemChat(todasMensagens, callback, true);
             });
         }
     });
@@ -102,14 +105,12 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     socket.on('mensagem', (mensagem) => {
-        todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(mensagem));
-        todasMensagens.scrollIntoView(scroll);
+        insereMensagemChat(todasMensagens, mensagem);
     });
 
     socket.on('enviaDigitando', (digitando) => {
         if (document.getElementById('digitando-'+digitando.Usuario) == null) {
-            todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(digitando, false, true));
-            todasMensagens.scrollIntoView(scroll);
+            insereMensagemChat(todasMensagens, digitando, false, true);
         }
     });
 
@@ -119,22 +120,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
         todasMensagens.innerHTML = '';
         socket.emit('login', {'nome': usuarioLogado, 'sala': sala}, (mensagens) => {
+            popularVoices();
             let msgsSalvas = '',
                 groupMensagens = mensagens.map(x => {return {'data': x._id, 'mensagens': x.data}});
 
             groupMensagens.forEach(x => {
                 msgsSalvas += '<li><div class="separator text-muted">'+(x.data === null ? 'Mensagens antigas' : x.data)+'</div></li>';
                 x.mensagens.forEach(y => {
-                    msgsSalvas +=  retornaMensagem({
+                    insereMensagemChat(todasMensagens, {
                         'Usuario': y.usuario,
                         'Mensagem': y.mensagem,
                         'Hora': y.hora
                     }, (y.usuario === usuarioLogado));
                 })
             });
-
-            todasMensagens.innerHTML = msgsSalvas
-            todasMensagens.scrollIntoView(scroll);
         });
         socket.emit('getUsers', sala);
         document.getElementById('salaConectada').innerHTML = '<i aria-hidden="true" class="fas fa-globe-americas fa-lg online"></i>\n' +
@@ -243,12 +242,15 @@ function retornaMensagem(mensagem, self = false, digitando = false) {
             '    </span>\n' +
             '    <div class="chat-body clearfix">\n' +
             '        <div class="header">\n' +
-            '            <strong class="primary-font">'+mensagem.Usuario+'</strong> <small class="text-muted">\n' +
-            '            ' + ((!digitando) ? '<i class="fa-regular fa-clock" aria-hidden="true"></i>' + mensagem.Hora + '</small>' : '') + '\n' +
+            '            <strong class="primary-font txt-user">'+mensagem.Usuario+'</strong>\n' +
+            '            ' + ((!digitando) ? '<small class="text-muted txt-hora"><i class="fa-regular fa-clock" aria-hidden="true"></i>' + mensagem.Hora + '</small>' : '') + '\n' +
             '        </div>\n' +
-            '        <div class="msg-left">\n' +
-            '            '+img+'\n' +
-            '            <p>'+mensagem.Mensagem+'</p>\n' +
+            '        <div class="group-msg-left">\n' +
+            '             <div class="msg-left">\n' +
+            '                 '+img+'\n' +
+            '                 <p class="txt-mensagem">'+mensagem.Mensagem+'</p>\n' +
+            '             </div>\n' +
+            '            '+retornaMenuDropDown(countMsgs++, true)+'\n' +
             '        </div>\n' +
             '    </div>\n' +
             '</li>';
@@ -260,17 +262,61 @@ function retornaMensagem(mensagem, self = false, digitando = false) {
             '    </span>\n' +
             '    <div class="chat-body pull-right clearfix">\n' +
             '        <div class="header text-end">\n' +
-            '            <small class="text-muted">'+mensagem.Hora+'<i class="fa-regular fa-clock" aria-hidden="true"></i></small>\n' +
-            '            <strong style="margin-left: 5px;" class="primary-font">'+mensagem.Usuario+'</strong>\n' +
+            '            <small class="text-muted txt-hora">'+mensagem.Hora+'<i class="fa-regular fa-clock" aria-hidden="true"></i></small>\n' +
+            '            <strong style="margin-left: 5px;" class="primary-font txt-user">'+mensagem.Usuario+'</strong>\n' +
             '        </div>\n' +
-            '        <div class="msg-right">\n' +
-            '            '+img+'\n' +
-            '            <p>'+mensagem.Mensagem+' </p>\n' +
+            '        <div class="group-msg-right">\n' +
+            '            <div class="msg-right">\n' +
+            '               '+img+'\n' +
+            '               <p class="txt-mensagem">'+mensagem.Mensagem+' </p>\n' +
+            '            </div>\n' +
+            '            '+retornaMenuDropDown(countMsgs++, true)+'\n' +
             '        </div>\n' +
             '    </div>\n' +
             '</li>';
     }
     return html;
+}
+
+function popularVoices(idioma = "pt-BR") {
+    listVoices = speech.getVoices();
+    voicesIdioma = listVoices.filter(x => x.lang === idioma).map(y => {return '<li class="li-dropdown-menu"><a class="dropdown-item item-dropdown-menu ler-texto" href="#" data-name="'+y.name+'">'+y.name+'</a></li>'});
+}
+
+function lerTexto(event) {
+    let voice = event.currentTarget.dataset.name,
+        elementoMensagem = event.currentTarget.offsetParent.parentElement.parentElement.parentElement,
+        user = elementoMensagem.getElementsByClassName("txt-user")[0].textContent,
+        hora = elementoMensagem.getElementsByClassName("txt-hora")[0].textContent,
+        mensagem = elementoMensagem.getElementsByClassName("txt-mensagem")[0].textContent;
+    let utterThis = new SpeechSynthesisUtterance(user + " as " + hora + " escreveu: " + mensagem);
+    utterThis.voice = listVoices.find(x => x.name === voice);
+    speech.speak(utterThis);
+}
+
+function retornaMenuDropDown(id, right = false) {
+    let direction = right ? 'dropend' : 'dropstart';
+    return '<div class="'+direction+'">\n' +
+        '  <i id="dropdownMenuChat'+id+'" data-bs-toggle="dropdown" aria-expanded="false" class="fa-solid fa-ellipsis-vertical menu-dropdown"></i>\n' +
+        '  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton'+id+'" style="">\n' +
+        '      '+voicesIdioma.join('\n')+'\n' +
+        '  </ul>\n' +
+        '</div>';
+}
+
+function insereMensagemChat(todasMensagens, mensagem, self = false, digitando = false) {
+    todasMensagens.insertAdjacentHTML('beforeend', (retornaMensagem(mensagem, self, digitando)));
+    todasMensagens.scrollIntoView(scroll);
+
+    document.querySelectorAll('.ler-texto').forEach(item => {
+
+        if (item.dataset.evento === undefined) {
+            item.setAttribute("data-evento", "click");
+            item.addEventListener('click', event => {
+                lerTexto(event);
+            });
+        }
+    });
 }
 
 function dragElement(elementoPai,elementoFilho) {

@@ -221,3 +221,31 @@
 #chat-container.alert-connection {
     max-height: calc(100vh - 218px) !important;
 }
+
+li.li-dropdown-menu {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.item-dropdown-menu {
+    font-size: 12px;
+}
+
+.menu-dropdown {
+    padding: 0.5em;
+    color: #9698ae;
+    cursor: pointer;
+}
+
+.menu-dropdown:hover {
+    color: #000000;
+}
+
+.group-msg-right {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.group-msg-left {
+    display: flex;
+}
