@@ -45,17 +45,22 @@
             </div>
             <div id="msg-connection"></div>
             <div class="card-body pr-0 pb-0 pt-0">
-                <div class="chat-container">
+                <div id="chat-container">
                     <ul id="todasMensagens" class="chat">
                     </ul>
                 </div>
             </div>
             <div class="card-footer">
+                <img src="data:," class="rounded mx-auto d-block img-thumbnail d-none" id="img-preview" alt="preview">
                 <div class="row text-center">
                     <div class="col pr-0">
                         <div class="icon-input">
                             <input id="inputMensagem" type="text" class="form-control" placeholder="Mensagem"
                                    aria-label="Mensagem">
+                            <label for="file" class="icon icon-2" style="right: 65px;">
+                                <i aria-hidden="true" class="fa-solid fa-image fa-lg"></i>
+                                <input type="file" id="file" style="display:none" accept="image/*">
+                            </label>
                             <span id="btnVideo" class="icon icon-2">
                                 <i aria-hidden="true" class="far fas fa-camera fa-lg"></i>
                             </span>

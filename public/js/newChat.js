@@ -1,4 +1,5 @@
-let timeDigitando;
+let timeDigitando,
+    imagemChat = null;
 
 const qtdReconnection = 15;
 const socket = io("/", {reconnectionAttempts: qtdReconnection});
@@ -15,31 +16,43 @@ document.addEventListener("DOMContentLoaded", function() {
         btnVideo = document.getElementById('btnVideo'),
         inputUsuario = document.getElementById('inputUsuario'),
         inputMensagem = document.getElementById('inputMensagem'),
-        todasMensagens = document.getElementById('todasMensagens');
+        todasMensagens = document.getElementById('todasMensagens'),
+        myVideo = document.createElement("video"),
+        preview = document.getElementById('img-preview'),
+        scroll = {behavior: "smooth", block: "end", inline: "end"};
 
     btnEntrar.addEventListener("click", () => {
         if (inputUsuario.value === "") {
             return false;
         }
 
-        inputUsuario.setAttribute('readonly',true);
+        inputUsuario.readOnly = true;
         socket.emit('getSalas', '');
     });
 
     btnMensagem.addEventListener("click", () => {
-        let mensagemEnvio = {
+        if ((inputMensagem.value.trim() !== "" || imagemChat !== null)) {
+            let mensagemEnvio = {
                 'Mensagem': inputMensagem.value,
-                'Hora': '',
                 'Usuario': document.getElementById('inputUsuario').value
             };
 
-        socket.emit('limpaDigitando');
+            if (imagemChat !== null) {
+                mensagemEnvio["Imagem"] = imagemChat;
+                preview.removeAttribute('src');
+                preview.classList.add('d-none');
+                document.getElementById('chat-container').classList.remove('img-preview');
+                imagemChat = null;
+            }
 
-        socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
-            inputMensagem.value = '';
-            todasMensagens.insertAdjacentHTML('beforeend', (retornaMensagem(callback, true)));
-            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
-        });
+            socket.emit('limpaDigitando');
+
+            socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
+                inputMensagem.value = '';
+                todasMensagens.insertAdjacentHTML('beforeend', (retornaMensagem(callback, true)));
+                todasMensagens.scrollIntoView(scroll);
+            });
+        }
     });
 
     inputUsuario.addEventListener("keyup", (e) => {
@@ -52,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function() {
         clearTimeout(timeDigitando);
         socket.emit('digitando');
         limpaDigitando();
-        if (e.key==="Enter" && inputMensagem.value.trim() !== "") {
+        if (e.key==="Enter") {
             document.getElementById('btnMensagem').dispatchEvent(new Event("click"));
         }
     });
@@ -60,6 +73,17 @@ document.addEventListener("DOMContentLoaded", function() {
     btnVideo.addEventListener("click", () => {
         inicializaVideo();
     });
+
+    document.getElementById('file').addEventListener('change', function() {
+        const reader = new FileReader();
+        reader.onload = function() {
+            imagemChat = this.result.replace(/.*base64,/, '');
+        };
+        reader.readAsDataURL(this.files[0]);
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        preview.classList.remove('d-none');
+        document.getElementById('chat-container').classList.add('img-preview');
+    }, false);
 
     socket.on('retornoSalas', (salas) => {
         let listaSala = document.getElementById('listaSalas');
@@ -70,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 '    <strong><i class="fa-regular fa-comments .icon-sala" aria-hidden="true"></i> '+sala+'</strong>\n' +
                 '    <span id= "qtd-user-'+sala+'" class="badge bg-primary rounded-pill">0</span>\n' +
                 '</li>';
-            listaSala.insertAdjacentHTML('beforeend', htmlSala);
+            listaSala.insertAdjacentHTML("beforeend", htmlSala);
         });
         Array.from(document.getElementsByClassName("salaChat")).forEach(function(element) {
             element.addEventListener("click", entrarNaSala);
@@ -79,13 +103,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     socket.on('mensagem', (mensagem) => {
         todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(mensagem));
-        todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+        todasMensagens.scrollIntoView(scroll);
     });
 
     socket.on('enviaDigitando', (digitando) => {
         if (document.getElementById('digitando-'+digitando.Usuario) == null) {
             todasMensagens.insertAdjacentHTML('beforeend', retornaMensagem(digitando, false, true));
-            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+            todasMensagens.scrollIntoView(scroll);
         }
     });
 
@@ -110,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             todasMensagens.innerHTML = msgsSalvas
-            todasMensagens.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+            todasMensagens.scrollIntoView(scroll);
         });
         socket.emit('getUsers', sala);
         document.getElementById('salaConectada').innerHTML = '<i aria-hidden="true" class="fas fa-globe-americas fa-lg online"></i>\n' +
@@ -125,20 +149,21 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function inicializaVideo() {
+        let myVideoStream;
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
         }).then((streamVideo) => {
-            window.localStream = streamVideo;
-            retornaVideoFrame('teste')
-            adicionaVideo($('#meuVideo' + 'teste'), streamVideo);
+            myVideoStream = streamVideo;
+            //retornaVideoFrame('teste');
+            adicionaVideo(myVideo, streamVideo);
 
             peer.on("call", (call) => {
                 call.answer(streamVideo);
-                retornaVideoFrame('teste')
-                const video = $('#meuVideoteste');
+                //retornaVideoFrame('teste')
+                const videoCall = document.createElement("video");
                 call.on("stream", (userVideoStream) => {
-                    adicionaVideo(video, userVideoStream);
+                    adicionaVideo(videoCall, userVideoStream);
                 });
             });
 
@@ -148,10 +173,17 @@ document.addEventListener("DOMContentLoaded", function() {
         })
     }
 
+    function adicionaVideo(elementoVideo, myVideoStream) {
+        elementoVideo.srcObject = myVideoStream;
+        elementoVideo.addEventListener("loadedmetadata", () => {
+            elementoVideo.play();
+            todasMensagens.append(elementoVideo);
+        });
+    }
+
     const conectarNovoUsuario = (idUsuario, stream) => {
         const call = peer.call(idUsuario, stream);
-        retornaVideoFrame('teste1')
-        const video = $('#meuVideoteste1');
+        const video =  document.createElement("video");
         call.on("stream", (userVideoStream) => {
             adicionaVideo(video, userVideoStream);
         });
@@ -174,63 +206,72 @@ socket.on('retornoUsers', (users) => {
 socket.io.on("error", () => {
     document.getElementById('msg-connection').innerHTML =
         '<div role="alert" class="alert alert-danger text-center border-avisos">Perda de conexão com o servidor</div>';
+    document.getElementById('chat-container').classList.add('alert-connection');
 });
 
 socket.io.on("reconnect_attempt", (attempt) => {
     document.getElementById('msg-connection').innerHTML =
         '<div role="alert" class="alert alert-warning text-center border-avisos">Tentativa de reconexão '+attempt+'/'+qtdReconnection+'</div>';
+    document.getElementById('chat-container').classList.add('alert-connection');
 });
 
 socket.io.on("reconnect", () => {
     document.getElementById('msg-connection').innerHTML =
         '<div role="alert" class="alert alert-success text-center border-avisos">Conexão reestabelecida</div>';
+    document.getElementById('chat-container').classList.add('alert-connection');
 
-    setTimeout(() => {document.getElementById('msg-connection').innerHTML = ''}, 3000);
+    setTimeout(() => {
+        document.getElementById('msg-connection').innerHTML = '';
+        document.getElementById('chat-container').classList.remove('alert-connection');
+        }, 3000);
 });
 
 function retornaMensagem(mensagem, self = false, digitando = false) {
     let html,
-        id = 'id="digitando-'+mensagem.Usuario+'"';
+        id = 'id="digitando-'+mensagem.Usuario+'"',
+        img = '';
+
+    if (mensagem.Imagem) {
+        img = '<img class="chat-imagem" src="data:image/jpg;base64,'+mensagem.Imagem+'" title="Teste" alt="teste"/>';
+    }
+
     if (!self) {
         html =
             '<li class="left clearfix"' + (digitando ? id : '') +'>' +
             '    <span class="chat-img pull-left">\n' +
-            '         <img alt="User Avatar" class="img-circle"\n' +
-            '                                 src="http://placehold.it/50/55C1E7/fff&amp;text=L">\n' +
+            '         <img alt="User Avatar" class="img-circle" src="http://placehold.it/50/55C1E7/fff&amp;text=L">\n' +
             '    </span>\n' +
             '    <div class="chat-body clearfix">\n' +
             '        <div class="header">\n' +
             '            <strong class="primary-font">'+mensagem.Usuario+'</strong> <small class="text-muted">\n' +
             '            ' + ((!digitando) ? '<i class="fa-regular fa-clock" aria-hidden="true"></i>' + mensagem.Hora + '</small>' : '') + '\n' +
             '        </div>\n' +
-            '        <p class="msg-left">'+mensagem.Mensagem+'</p>\n' +
+            '        <div class="msg-left">\n' +
+            '            '+img+'\n' +
+            '            <p>'+mensagem.Mensagem+'</p>\n' +
+            '        </div>\n' +
             '    </div>\n' +
             '</li>';
     } else {
         html =
-            '<li class="right clearfix"><span class="chat-img pull-right">\n' +
-            '                            <img alt="User Avatar" class="img-circle"\n' +
-            '                                 src="http://placehold.it/50/FA6F57/fff&amp;text=R">\n' +
-            '                        </span>\n' +
+            '<li class="right clearfix">' +
+            '    <span class="chat-img pull-right">\n' +
+            '        <img alt="User Avatar" class="img-circle" src="http://placehold.it/50/FA6F57/fff&amp;text=R">\n' +
+            '    </span>\n' +
             '    <div class="chat-body pull-right clearfix">\n' +
             '        <div class="header text-end">\n' +
             '            <small class="text-muted">'+mensagem.Hora+'<i class="fa-regular fa-clock" aria-hidden="true"></i></small>\n' +
             '            <strong style="margin-left: 5px;" class="primary-font">'+mensagem.Usuario+'</strong>\n' +
             '        </div>\n' +
-            '        <p class="pull-right msg-right">'+mensagem.Mensagem+' </p>\n' +
+            '        <div class="msg-right">\n' +
+            '            '+img+'\n' +
+            '            <p>'+mensagem.Mensagem+' </p>\n' +
+            '        </div>\n' +
             '    </div>\n' +
             '</li>';
     }
     return html;
 }
-
-function adicionaVideo(elementoVideo, myVideoStream) {
-    document.getElementById(elementoVideo.attr('id')).srcObject = myVideoStream;
-    document.getElementById(elementoVideo.attr('id')).addEventListener("loadedmetadata", () => {
-        document.getElementById(elementoVideo.attr('id')).play();
-    });
-}
-
 
 function dragElement(elementoPai,elementoFilho) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -267,10 +308,10 @@ function dragElement(elementoPai,elementoFilho) {
 }
 
 function retornaVideoFrame(id){
-    let dados =  '<div id="divPai'+id+'" class="dragPai">'+
-                    '<video class="dragFilho" id="meuVideo'+id+'"></video>'+
-                    '<p>teste'+id+'</p>'+
-                '</div>';
-    $('#inicio').append(dados);
+    document.getElementById('msg-connection').innerHTML =
+        '<div id="divPai' + id + '" class="dragPai">' +
+        '   <video class="dragFilho" id="meuVideo' + id + '"></video>' +
+        '   <p>teste' + id + '</p>' +
+        '</div>';
     dragElement(document.getElementById('divPai'+id),document.getElementById('meuVideo'+id));
 }

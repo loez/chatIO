@@ -21,6 +21,7 @@ global.db = require('./db');
 
 const porta = 8080;
 const { adicionaUsuario, getUsuario, deletaUsuario, getUsuariosSala, getSalas } = require('./usuarios')
+const fs = require("fs");
 
 
 app.use(express.static(__dirname + '/'));
@@ -63,7 +64,7 @@ io.on('connection', (socket) => {
         socket.broadcast.to(usuario.sala).emit('retornoUsers', getUsuariosSala(usuario.sala));
     });
 
-    socket.on("enviaMensagem", (message, callback) => {
+    socket.on("enviaMensagem", async (message, callback) => {
         const usuario = getUsuario(socket.id);
 
         message['Data'] = moment().format('YYYY-MM-DD');
