@@ -46,16 +46,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (imagemChat !== null) {
                 mensagemEnvio["Imagem"] = imagemChat;
-                preview.removeAttribute('src');
-                preview.classList.add('d-none');
-                document.getElementById('chat-container').classList.remove('img-preview');
-                imagemChat = null;
             }
 
             socket.emit('limpaDigitando');
 
             socket.emit('enviaMensagem', mensagemEnvio, (callback) => {
                 inputMensagem.value = '';
+                if (imagemChat !== null) {
+                    limpaImagem();
+                }
                 insereMensagemChat(todasMensagens, callback, true);
             });
         } else {
@@ -84,12 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     btnCloseImagem.addEventListener("click", () => {
-        clearTimeout(timeLembreteImagem);
-        preview.removeAttribute('src');
-        preview.classList.add('d-none');
-        btnCloseImagem.classList.add('d-none');
-        document.getElementById('chat-container').classList.remove('img-preview');
-        imagemChat = null;
+        limpaImagem();
     });
 
     document.getElementById('file').addEventListener('change', function() {
@@ -162,6 +156,16 @@ document.addEventListener("DOMContentLoaded", function() {
             function () {
                 socket.emit('limpaDigitando');
             }, 3000);
+    }
+
+    function limpaImagem() {
+        clearTimeout(timeLembreteImagem);
+        preview.removeAttribute('src');
+        preview.classList.add('d-none');
+        btnCloseImagem.classList.add('d-none');
+        document.getElementById('chat-container').classList.remove('img-preview');
+        document.getElementById("file").value = "";
+        imagemChat = null;
     }
 
     function inicializaVideo() {
@@ -302,11 +306,23 @@ function popularVoices(idioma = "pt-BR") {
 
 function lerTexto(event) {
     let voice = event.currentTarget.dataset.name,
-        elementoMensagem = event.currentTarget.offsetParent.parentElement.parentElement.parentElement,
+        elementoMensagem = event.currentTarget.closest(".chat-body"),
         user = elementoMensagem.getElementsByClassName("txt-user")[0].textContent,
         hora = elementoMensagem.getElementsByClassName("txt-hora")[0].textContent,
-        mensagem = elementoMensagem.getElementsByClassName("txt-mensagem")[0].textContent;
-    let utterThis = new SpeechSynthesisUtterance(user + " as " + hora + " escreveu: " + mensagem);
+        mensagem = elementoMensagem.getElementsByClassName("txt-mensagem")[0].textContent,
+        imagem = elementoMensagem.getElementsByClassName("chat-imagem").length,
+        msg = user + " as " + hora ;
+
+    if (imagem) {
+        msg += " enviou uma imagem ";
+    }
+
+    if (mensagem.trim() !== "") {
+        let texto = imagem ? " com o texto: " : " escreveu: ";
+        msg += texto + mensagem;
+    }
+
+    let utterThis = new SpeechSynthesisUtterance(msg);
     utterThis.voice = listVoices.find(x => x.name === voice);
     speech.speak(utterThis);
 }
