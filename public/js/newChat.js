@@ -1,4 +1,5 @@
 let timeDigitando,
+    timeLembreteImagem,
     imagemChat = null,
     countMsgs = 0,
     speech = window.speechSynthesis,
@@ -23,7 +24,8 @@ document.addEventListener("DOMContentLoaded", function() {
         inputMensagem = document.getElementById('inputMensagem'),
         todasMensagens = document.getElementById('todasMensagens'),
         myVideo = document.createElement("video"),
-        preview = document.getElementById('img-preview');
+        preview = document.getElementById('img-preview'),
+        btnCloseImagem = document.getElementById('btn-close-imagem');
 
     btnEntrar.addEventListener("click", () => {
         if (inputUsuario.value === "") {
@@ -36,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     btnMensagem.addEventListener("click", () => {
         if ((inputMensagem.value.trim() !== "" || imagemChat !== null)) {
+            clearTimeout(timeLembreteImagem);
             let mensagemEnvio = {
                 'Mensagem': inputMensagem.value,
                 'Usuario': document.getElementById('inputUsuario').value
@@ -55,6 +58,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 inputMensagem.value = '';
                 insereMensagemChat(todasMensagens, callback, true);
             });
+        } else {
+            animateCSS('#inputMensagem', 'shake');
         }
     });
 
@@ -65,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     inputMensagem.addEventListener("keyup", (e) => {
+        clearTimeout(timeLembreteImagem);
         clearTimeout(timeDigitando);
         socket.emit('digitando');
         limpaDigitando();
@@ -77,6 +83,15 @@ document.addEventListener("DOMContentLoaded", function() {
         inicializaVideo();
     });
 
+    btnCloseImagem.addEventListener("click", () => {
+        clearTimeout(timeLembreteImagem);
+        preview.removeAttribute('src');
+        preview.classList.add('d-none');
+        btnCloseImagem.classList.add('d-none');
+        document.getElementById('chat-container').classList.remove('img-preview');
+        imagemChat = null;
+    });
+
     document.getElementById('file').addEventListener('change', function() {
         const reader = new FileReader();
         reader.onload = function() {
@@ -85,7 +100,9 @@ document.addEventListener("DOMContentLoaded", function() {
         reader.readAsDataURL(this.files[0]);
         preview.src = URL.createObjectURL(event.target.files[0]);
         preview.classList.remove('d-none');
+        btnCloseImagem.classList.remove('d-none');
         document.getElementById('chat-container').classList.add('img-preview');
+        timeLembreteImagem = setTimeout(() => { animateCSS('#btnMensagem', 'shake'); }, 3000);
     }, false);
 
     socket.on('retornoSalas', (salas) => {
@@ -360,4 +377,17 @@ function retornaVideoFrame(id){
         '   <p>teste' + id + '</p>' +
         '</div>';
     dragElement(document.getElementById('divPai'+id),document.getElementById('meuVideo'+id));
+}
+
+const animateCSS = (element, animation) => {
+    const node = document.querySelector(element);
+
+    node.classList.add(animation);
+
+    function handleAnimationEnd(event) {
+        event.stopPropagation();
+        node.classList.remove(animation);
+    }
+
+    node.addEventListener('animationend', handleAnimationEnd, {once: true});
 }

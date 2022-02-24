@@ -249,3 +249,8 @@ li.li-dropdown-menu {
 .group-msg-left {
     display: flex;
 }
+
+#btn-close-imagem {
+    position: relative;
+    float: right;
+}
